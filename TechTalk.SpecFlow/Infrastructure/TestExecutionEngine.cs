@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using BoDi;
 using TechTalk.SpecFlow.Bindings;
 using TechTalk.SpecFlow.Bindings.Reflection;
@@ -64,28 +65,28 @@ namespace TechTalk.SpecFlow.Infrastructure
 
         public ScenarioContext ScenarioContext => _contextManager.ScenarioContext;
 
-        public virtual void OnTestRunStart()
+        public virtual async Task OnTestRunStartAsync()
         {
-            FireEvents(HookType.BeforeTestRun);
+            await FireEventsAsync(HookType.BeforeTestRun);
         }
 
-        public virtual void OnTestRunEnd()
+        public virtual async Task OnTestRunEndAsync()
         {
             if (_testRunnerEndExecuted)
                 return;
 
             _testRunnerEndExecuted = true;
-            FireEvents(HookType.AfterTestRun);
+            await FireEventsAsync(HookType.AfterTestRun);
         }
 
-        public void OnFeatureStart(FeatureInfo featureInfo)
+        public async Task OnFeatureStartAsync(FeatureInfo featureInfo)
         {
             // if the unit test provider would execute the fixture teardown code 
             // only delayed (at the end of the execution), we automatically close 
             // the current feature if necessary
             if (_unitTestRuntimeProvider.DelayedFixtureTearDown && FeatureContext != null)
             {
-                OnFeatureEnd();
+                await OnFeatureEndAsync();
             }
 
 
@@ -93,10 +94,10 @@ namespace TechTalk.SpecFlow.Infrastructure
 
             _defaultBindingCulture = FeatureContext.BindingCulture;
             _defaultTargetLanguage = featureInfo.GenerationTargetLanguage;
-            FireEvents(HookType.BeforeFeature);
+            await FireEventsAsync(HookType.BeforeFeature);
         }
 
-        public void OnFeatureEnd()
+        public async Task OnFeatureEndAsync()
         {
             // if the unit test provider would execute the fixture teardown code 
             // only delayed (at the end of the execution), we ignore the 
@@ -105,7 +106,7 @@ namespace TechTalk.SpecFlow.Infrastructure
                 FeatureContext == null)
                 return;
 
-            FireEvents(HookType.AfterFeature);
+            await FireEventsAsync(HookType.AfterFeature);
 
             if (_specFlowConfiguration.TraceTimings)
             {
@@ -122,9 +123,9 @@ namespace TechTalk.SpecFlow.Infrastructure
             _contextManager.InitializeScenarioContext(scenarioInfo);
         }
 
-        public void OnScenarioStart()
+        public async Task OnScenarioStartAsync()
         {
-            FireScenarioEvents(HookType.BeforeScenario);
+            await FireScenarioEventsAsync(HookType.BeforeScenario);
         }
 
         public void OnAfterLastStep()
@@ -171,9 +172,9 @@ namespace TechTalk.SpecFlow.Infrastructure
             throw _contextManager.ScenarioContext.TestError;
         }
 
-        public void OnScenarioEnd()
+        public async Task OnScenarioEndAsync()
         {
-            FireScenarioEvents(HookType.AfterScenario);
+            await FireScenarioEventsAsync(HookType.AfterScenario);
             _contextManager.CleanupScenarioContext();
         }
 
@@ -182,40 +183,40 @@ namespace TechTalk.SpecFlow.Infrastructure
             throw _errorProvider.GetPendingStepDefinitionError();
         }
 
-        protected virtual void OnBlockStart(ScenarioBlock block)
+        protected virtual async Task OnBlockStartAsync(ScenarioBlock block)
         {
             if (block == ScenarioBlock.None)
                 return;
 
-            FireScenarioEvents(HookType.BeforeScenarioBlock);
+            await FireScenarioEventsAsync(HookType.BeforeScenarioBlock);
         }
 
-        protected virtual void OnBlockEnd(ScenarioBlock block)
+        protected virtual async Task OnBlockEndAsync(ScenarioBlock block)
         {
             if (block == ScenarioBlock.None)
                 return;
 
-            FireScenarioEvents(HookType.AfterScenarioBlock);
+            await FireScenarioEventsAsync(HookType.AfterScenarioBlock);
         }
 
-        protected virtual void OnStepStart()
+        protected virtual async Task OnStepStartAsync()
         {
-            FireScenarioEvents(HookType.BeforeStep);
+            await FireScenarioEventsAsync(HookType.BeforeStep);
         }
 
-        protected virtual void OnStepEnd()
+        protected virtual async Task OnStepEndAsync()
         {
-            FireScenarioEvents(HookType.AfterStep);
+            await FireScenarioEventsAsync(HookType.AfterStep);
         }
 
         #region Step/event execution
 
-        protected virtual void FireScenarioEvents(HookType bindingEvent)
+        protected virtual async Task FireScenarioEventsAsync(HookType bindingEvent)
         {
-            FireEvents(bindingEvent);
+            await FireEventsAsync(bindingEvent);
         }
 
-        private void FireEvents(HookType hookType)
+        private async Task FireEventsAsync(HookType hookType)
         {
             var stepContext = _contextManager.GetStepContext();
 
@@ -231,18 +232,18 @@ namespace TechTalk.SpecFlow.Infrastructure
             var uniqueMatchingHooks = matchingHooks.GroupBy(hookBinding => hookBinding.Method).Select(g => g.First());
             foreach (var hookBinding in uniqueMatchingHooks.OrderBy(x => x.HookOrder))
             {
-                InvokeHook(_bindingInvoker, hookBinding, hookType);
+                await InvokeHookAsync(_bindingInvoker, hookBinding, hookType);
             }
         }
 
         protected IObjectContainer TestThreadContainer { get; }
 
-        public void InvokeHook(IBindingInvoker invoker, IHookBinding hookBinding, HookType hookType)
+        public async Task InvokeHookAsync(IBindingInvoker invoker, IHookBinding hookBinding, HookType hookType)
         {
             var currentContainer = GetHookContainer(hookType);
             var arguments = ResolveArguments(hookBinding, currentContainer);
 
-            invoker.InvokeBinding(hookBinding, _contextManager, arguments, _testTracer, out _);
+            await invoker.InvokeBindingAsync(hookBinding, _contextManager, arguments, _testTracer);
         }
 
         private IObjectContainer GetHookContainer(HookType hookType)
@@ -285,7 +286,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             return _testObjectResolver.ResolveBindingInstance(runtimeParameterType.Type, container);
         }
 
-        private void ExecuteStep(IContextManager contextManager, StepInstance stepInstance)
+        private async Task ExecuteStepAsync(IContextManager contextManager, StepInstance stepInstance)
         {
             HandleBlockSwitch(stepInstance.StepDefinitionType.ToScenarioBlock());
 
@@ -301,7 +302,7 @@ namespace TechTalk.SpecFlow.Infrastructure
                 match = GetStepMatch(stepInstance);
                 contextManager.StepContext.StepInfo.BindingMatch = match;
                 contextManager.StepContext.StepInfo.StepInstance = stepInstance;
-                arguments = GetExecuteArguments(match);
+                arguments = await GetExecuteArgumentsAsync(match);
 
                 if (isStepSkipped)
                 {
@@ -312,8 +313,8 @@ namespace TechTalk.SpecFlow.Infrastructure
                     _obsoleteStepHandler.Handle(match);
 
                     onStepStartExecuted = true;
-                    OnStepStart();
-                    TimeSpan duration = ExecuteStepMatch(match, arguments);
+                    await OnStepStartAsync();
+                    var duration = await ExecuteStepMatchAsync(match, arguments);
                     if (_specFlowConfiguration.TraceSuccessfulSteps)
                         _testTracer.TraceStepDone(match, arguments, duration);
                 }
@@ -361,7 +362,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             {
                 if (onStepStartExecuted)
                 {
-                    OnStepEnd();
+                    OnStepEndAsync();
                 }
             }
         }
@@ -387,12 +388,12 @@ namespace TechTalk.SpecFlow.Infrastructure
             throw _errorProvider.GetMissingStepDefinitionError();
         }
 
-        protected virtual TimeSpan ExecuteStepMatch(BindingMatch match, object[] arguments)
+        protected virtual async Task<TimeSpan> ExecuteStepMatchAsync(BindingMatch match, object[] arguments)
         {
             TimeSpan duration = TimeSpan.Zero;
             try
             {
-                _bindingInvoker.InvokeBinding(match.StepBinding, _contextManager, arguments, _testTracer, out duration);
+                await _bindingInvoker.InvokeBindingAsync(match.StepBinding, _contextManager, arguments, _testTracer);
             }
             catch (Exception ex)
             {
@@ -429,41 +430,44 @@ namespace TechTalk.SpecFlow.Infrastructure
             if (_contextManager.ScenarioContext.CurrentScenarioBlock != block)
             {
                 if (_contextManager.ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
-                    OnBlockEnd(_contextManager.ScenarioContext.CurrentScenarioBlock);
+                    OnBlockEndAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
 
                 _contextManager.ScenarioContext.CurrentScenarioBlock = block;
 
                 if (_contextManager.ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
-                    OnBlockStart(_contextManager.ScenarioContext.CurrentScenarioBlock);
+                    OnBlockStartAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
             }
         }
 
-        private object[] GetExecuteArguments(BindingMatch match)
+        private async Task<object[]> GetExecuteArgumentsAsync(BindingMatch match)
         {
             var bindingParameters = match.StepBinding.Method.Parameters.ToArray();
             if (match.Arguments.Length != bindingParameters.Length)
                 throw _errorProvider.GetParameterCountError(match, match.Arguments.Length);
 
-            var arguments = match.Arguments.Select(
-                    (arg, argIndex) => ConvertArg(arg, bindingParameters[argIndex].Type))
-                .ToArray();
+            var arguments = new object[match.Arguments.Length];
+
+            for (var i = 0; i < match.Arguments.Length; i++)
+            {
+                arguments[i] = await ConvertArg(match.Arguments[i], bindingParameters[i].Type);
+            }
 
             return arguments;
         }
 
-        private object ConvertArg(object value, IBindingType typeToConvertTo)
+        private async Task<object> ConvertArg(object value, IBindingType typeToConvertTo)
         {
             Debug.Assert(value != null);
             Debug.Assert(typeToConvertTo != null);
 
-            return _stepArgumentTypeConverter.Convert(value, typeToConvertTo, FeatureContext.BindingCulture);
+            return await _stepArgumentTypeConverter.ConvertAsync(value, typeToConvertTo, FeatureContext.BindingCulture);
         }
 
         #endregion
 
         #region Given-When-Then
 
-        public void Step(StepDefinitionKeyword stepDefinitionKeyword, string keyword, string text, string multilineTextArg, Table tableArg)
+        public async Task StepAsync(StepDefinitionKeyword stepDefinitionKeyword, string keyword, string text, string multilineTextArg, Table tableArg)
         {
             StepDefinitionType stepDefinitionType = stepDefinitionKeyword == StepDefinitionKeyword.And || stepDefinitionKeyword == StepDefinitionKeyword.But
                 ? GetCurrentBindingType()
@@ -472,7 +476,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             try
             {
                 var stepInstance = new StepInstance(stepDefinitionType, stepDefinitionKeyword, keyword, text, multilineTextArg, tableArg, _contextManager.GetStepContext());
-                ExecuteStep(_contextManager, stepInstance);
+                await ExecuteStepAsync(_contextManager, stepInstance);
             }
             finally
             {

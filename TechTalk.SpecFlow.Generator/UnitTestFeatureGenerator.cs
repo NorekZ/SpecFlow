@@ -335,7 +335,7 @@ namespace TechTalk.SpecFlow.Generator
             scenarioStartMethod.Statements.Add(
                 new CodeMethodInvokeExpression(
                     testRunnerField,
-                    nameof(ITestExecutionEngine.OnScenarioStart)));
+                    nameof(ITestExecutionEngine.OnScenarioStartAsync)));
         }
 
         private void SetupFeatureBackground(TestClassGenerationContext generationContext)

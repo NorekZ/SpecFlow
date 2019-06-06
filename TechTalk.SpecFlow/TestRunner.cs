@@ -1,4 +1,5 @@
-﻿using TechTalk.SpecFlow.Bindings;
+﻿using System.Threading.Tasks;
+using TechTalk.SpecFlow.Bindings;
 using TechTalk.SpecFlow.Infrastructure;
 
 namespace TechTalk.SpecFlow
@@ -24,9 +25,9 @@ namespace TechTalk.SpecFlow
             get { return executionEngine.ScenarioContext; }
         }
 
-        public void OnTestRunStart()
+        public async Task OnTestRunStartAsync()
         {
-            executionEngine.OnTestRunStart();
+            await executionEngine.OnTestRunStartAsync();
         }
 
         public void InitializeTestRunner(int threadId)
@@ -34,14 +35,14 @@ namespace TechTalk.SpecFlow
             ThreadId = threadId;
         }
 
-        public void OnFeatureStart(FeatureInfo featureInfo)
+        public async Task OnFeatureStartAsync(FeatureInfo featureInfo)
         {
-            executionEngine.OnFeatureStart(featureInfo);
+            await executionEngine.OnFeatureStartAsync(featureInfo);
         }
 
-        public void OnFeatureEnd()
+        public async Task OnFeatureEndAsync()
         {
-            executionEngine.OnFeatureEnd();
+            await executionEngine.OnFeatureEndAsync();
         }
 
         public void OnScenarioInitialize(ScenarioInfo scenarioInfo)
@@ -49,9 +50,9 @@ namespace TechTalk.SpecFlow
             executionEngine.OnScenarioInitialize(scenarioInfo);
         }
 
-        public void OnScenarioStart()
+        public async Task OnScenarioStartAsync()
         {
-            executionEngine.OnScenarioStart();
+            await executionEngine.OnScenarioStartAsync();
         }
 
         public void CollectScenarioErrors()
@@ -59,39 +60,39 @@ namespace TechTalk.SpecFlow
             executionEngine.OnAfterLastStep();
         }
 
-        public void OnScenarioEnd()
+        public async Task OnScenarioEndAsync()
         {
-            executionEngine.OnScenarioEnd();
+            await executionEngine.OnScenarioEndAsync();
         }
 
-        public void OnTestRunEnd()
+        public async Task OnTestRunEndAsync()
         {
-            executionEngine.OnTestRunEnd();
+            await executionEngine.OnTestRunEndAsync();
         }
 
-        public void Given(string text, string multilineTextArg, Table tableArg, string keyword = null)
+        public async Task GivenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null)
         {
-            executionEngine.Step(StepDefinitionKeyword.Given, keyword, text, multilineTextArg, tableArg);
+            await executionEngine.StepAsync(StepDefinitionKeyword.Given, keyword, text, multilineTextArg, tableArg);
         }
 
-        public void When(string text, string multilineTextArg, Table tableArg, string keyword = null)
+        public async Task WhenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null)
         {
-            executionEngine.Step(StepDefinitionKeyword.When, keyword, text, multilineTextArg, tableArg);
+            await executionEngine.StepAsync(StepDefinitionKeyword.When, keyword, text, multilineTextArg, tableArg);
         }
 
-        public void Then(string text, string multilineTextArg, Table tableArg, string keyword = null)
+        public async Task ThenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null)
         {
-            executionEngine.Step(StepDefinitionKeyword.Then, keyword, text, multilineTextArg, tableArg);
+            await executionEngine.StepAsync(StepDefinitionKeyword.Then, keyword, text, multilineTextArg, tableArg);
         }
 
-        public void And(string text, string multilineTextArg, Table tableArg, string keyword = null)
+        public async Task AndAsync(string text, string multilineTextArg, Table tableArg, string keyword = null)
         {
-            executionEngine.Step(StepDefinitionKeyword.And, keyword, text, multilineTextArg, tableArg);
+            await executionEngine.StepAsync(StepDefinitionKeyword.And, keyword, text, multilineTextArg, tableArg);
         }
 
-        public void But(string text, string multilineTextArg, Table tableArg, string keyword = null)
+        public async Task ButAsync(string text, string multilineTextArg, Table tableArg, string keyword = null)
         {
-            executionEngine.Step(StepDefinitionKeyword.But, keyword, text, multilineTextArg, tableArg);
+            await executionEngine.StepAsync(StepDefinitionKeyword.But, keyword, text, multilineTextArg, tableArg);
         }
 
         public void Pending()

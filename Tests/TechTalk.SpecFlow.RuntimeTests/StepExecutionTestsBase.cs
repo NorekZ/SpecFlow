@@ -87,7 +87,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
 
         public StepExecutionTestsBase()
         {
-            TestRunnerManager.Reset();
+            TestRunnerManager.ResetAsync();
 
             
             
