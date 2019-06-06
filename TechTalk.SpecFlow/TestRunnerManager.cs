@@ -237,7 +237,7 @@ namespace TechTalk.SpecFlow
                 result = stackTrace.GetFrame(callingMethodIndex + 1).GetMethod().DeclaringType?.Assembly;
             }
 
-            return result ?? Assembly.GetCallingAssembly();
+            return result ?? GetCallingAssembly();
         }
 
         private static ITestRunnerManager CreateTestRunnerManager(Assembly testAssembly, IContainerBuilder containerBuilder = null)
@@ -252,7 +252,7 @@ namespace TechTalk.SpecFlow
 
         public static async Task OnTestRunEndAsync(Assembly testAssembly = null)
         {
-            testAssembly = testAssembly ?? Assembly.GetCallingAssembly();
+            testAssembly = testAssembly ?? GetCallingAssembly();
             var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: false);
             if (testRunnerManager != null)
             {
@@ -262,7 +262,7 @@ namespace TechTalk.SpecFlow
 
         public static async Task<ITestRunner> GetTestRunnerAsync(Assembly testAssembly = null, int? managedThreadId = null)
         {
-            testAssembly = testAssembly ?? Assembly.GetCallingAssembly();
+            testAssembly = testAssembly ?? GetCallingAssembly();
             managedThreadId = GetLogicalThreadId(managedThreadId);
             var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly);
             return await testRunnerManager.GetTestRunnerAsync(managedThreadId.Value);

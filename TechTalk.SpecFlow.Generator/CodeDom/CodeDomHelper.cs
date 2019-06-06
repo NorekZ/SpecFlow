@@ -250,5 +250,25 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
                     throw new NotSupportedException();
             }
         }
+
+        public static void MarkCodeMemberMethodAsAsync(CodeMemberMethod method)
+        {
+            var returnTypeArgumentReferences = method.ReturnType.TypeArguments.OfType<CodeTypeReference>().ToArray();
+
+            var asyncReturnType = new CodeTypeReference($"async {method.ReturnType.BaseType}", returnTypeArgumentReferences);
+            method.ReturnType = asyncReturnType;
+        }
+
+        public static void MarkCodeMethodInvokeExpressionAsAwait(CodeMethodInvokeExpression expression)
+        {
+            if (expression.Method.TargetObject is CodeVariableReferenceExpression variableExpression)
+            {
+                expression.Method.TargetObject = new CodeVariableReferenceExpression($"await {variableExpression.VariableName}");
+            }
+            else if (expression.Method.TargetObject is CodeTypeReferenceExpression typeExpression)
+            {
+                expression.Method.TargetObject = new CodeVariableReferenceExpression($"await {typeExpression.Type.BaseType}");
+            }
+        }
     }
 }

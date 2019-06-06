@@ -71,18 +71,18 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
             CodeDomHelper.AddAttribute(testMethod, INLINEDATA_ATTRIBUTE, args.ToArray());
         }
 
-        protected override void SetTestConstructor(TestClassGenerationContext generationContext, CodeConstructor ctorMethod) {
-            ctorMethod.Parameters.Add(
+        protected override void SetTestInitializeMethod(TestClassGenerationContext generationContext, CodeMemberMethod method) {
+            method.Parameters.Add(
                 new CodeParameterDeclarationExpression((CodeTypeReference)generationContext.CustomData[FIXTUREDATA_PARAMETER_NAME], FIXTUREDATA_PARAMETER_NAME));
-            ctorMethod.Parameters.Add(
+            method.Parameters.Add(
                 new CodeParameterDeclarationExpression(OUTPUT_INTERFACE, OUTPUT_INTERFACE_PARAMETER_NAME));
 
-            ctorMethod.Statements.Add(
+            method.Statements.Add(
                 new CodeAssignStatement(
                     new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), OUTPUT_INTERFACE_FIELD_NAME),
                     new CodeVariableReferenceExpression(OUTPUT_INTERFACE_PARAMETER_NAME)));
 
-            base.SetTestConstructor(generationContext, ctorMethod);
+            base.SetTestInitializeMethod(generationContext, method);
         }
 
         public override void SetTestMethodIgnore(TestClassGenerationContext generationContext, CodeMemberMethod testMethod)
