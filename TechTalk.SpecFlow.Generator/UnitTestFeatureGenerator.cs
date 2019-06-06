@@ -25,13 +25,13 @@ namespace TechTalk.SpecFlow.Generator
         const string TEST_NAME_FORMAT = "{0}";
         private const string IGNORE_TAG = "@Ignore";
         private const string SCENARIO_INITIALIZE_NAME = "ScenarioInitialize";
-        private const string SCENARIO_START_NAME = "ScenarioStart";
+        private const string SCENARIO_START_NAME = "ScenarioStartAsync";
         private const string SCENARIO_CLEANUP_NAME = "ScenarioCleanup";
         private const string TEST_INITIALIZE_NAME = "TestInitialize";
-        private const string TEST_CLEANUP_NAME = "ScenarioTearDown";
-        private const string TESTCLASS_INITIALIZE_NAME = "FeatureSetup";
-        private const string TESTCLASS_CLEANUP_NAME = "FeatureTearDown";
-        private const string BACKGROUND_NAME = "FeatureBackground";
+        private const string TEST_CLEANUP_NAME = "ScenarioTearDownAsync";
+        private const string TESTCLASS_INITIALIZE_NAME = "FeatureSetupAsync";
+        private const string TESTCLASS_CLEANUP_NAME = "FeatureTearDownAsync";
+        private const string BACKGROUND_NAME = "FeatureBackgroundAsync";
         private const string TESTRUNNER_FIELD = "testRunner";
         private const string SPECFLOW_NAMESPACE = "TechTalk.SpecFlow";
         private const string SCENARIO_OUTLINE_EXAMPLE_TAGS_PARAMETER = "exampleTags";
@@ -377,8 +377,11 @@ namespace TechTalk.SpecFlow.Generator
 
             CodeMemberMethod backgroundMethod = generationContext.FeatureBackgroundMethod;
 
+            backgroundMethod.ReturnType = new CodeTypeReference(typeof(Task));
             backgroundMethod.Attributes = MemberAttributes.Public;
             backgroundMethod.Name = BACKGROUND_NAME;
+
+            CodeDomHelper.MarkCodeMemberMethodAsAsync(backgroundMethod);
 
             AddLineDirective(backgroundMethod.Statements, background);
 
@@ -482,8 +485,11 @@ namespace TechTalk.SpecFlow.Generator
         {
             CodeMemberMethod testMethod = CreateMethod(generationContext.TestClass);
 
+            testMethod.ReturnType = new CodeTypeReference(typeof(Task));
             testMethod.Attributes = MemberAttributes.Public;
             testMethod.Name = string.Format(TEST_NAME_FORMAT, scenarioOutline.Name.ToIdentifier());
+
+            CodeDomHelper.MarkCodeMemberMethodAsAsync(testMethod);
 
             foreach (var pair in paramToIdentifier)
             {

@@ -267,7 +267,7 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
             else if (expression.Method.TargetObject is CodeTypeReferenceExpression typeExpression)
             {
-                expression.Method.TargetObject = new CodeVariableReferenceExpression($"await {typeExpression.Type.BaseType}");
+                expression.Method.TargetObject = new CodeTypeReferenceExpression($"await {typeExpression.Type.BaseType}");
             }
         }
     }

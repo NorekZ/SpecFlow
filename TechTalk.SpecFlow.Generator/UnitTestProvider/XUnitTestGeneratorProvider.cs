@@ -87,11 +87,15 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
 
             CodeDomHelper.MarkCodeMemberMethodAsAsync(initializeMethod);
 
+            var expression = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression(new CodeTypeReference(generationContext.TestClass.Name)),
+                generationContext.TestClassInitializeMethod.Name);
+
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(expression);
+
             _currentFixtureDataTypeDeclaration.Members.Add(initializeMethod);
             initializeMethod.Statements.Add(
-                new CodeMethodInvokeExpression(
-                    new CodeTypeReferenceExpression(new CodeTypeReference(generationContext.TestClass.Name)),
-                    generationContext.TestClassInitializeMethod.Name));
+                expression);
         }
 
         public virtual bool ImplmentInterfaceExplicit => true;
