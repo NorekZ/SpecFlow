@@ -236,7 +236,7 @@ namespace TechTalk.SpecFlow.GeneratorTests
                     .As<CodeMethodInvokeExpression>();
 
                 featureSetupCall.Should().NotBeNull();
-                featureSetupCall.Method.MethodName.Should().Be("FeatureSetup");
+                featureSetupCall.Method.MethodName.Should().Be("FeatureSetupAsync");
                 featureSetupCall.Method.TargetObject.As<CodeTypeReferenceExpression>().Type.Options.Should().Be(CodeTypeReferenceOptions.GlobalReference);
             }
         }
