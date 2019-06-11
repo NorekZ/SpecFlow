@@ -3,6 +3,11 @@
 Changes:
 + Async bindings fixed https://github.com/techtalk/SpecFlow/issues/1598
 
+3.0
+
+Fixes:
+ + Empty root namespaces now work when generating feature codebehind files with the MSBuild task
+
 3.0 - 2019-04-24
 
 Changes:
