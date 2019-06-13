@@ -207,7 +207,7 @@ namespace TechTalk.SpecFlow.Generator
             testClassInitializeMethod.Attributes = MemberAttributes.Public;
             testClassInitializeMethod.Name = TESTCLASS_INITIALIZE_NAME;
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(testClassInitializeMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(testClassInitializeMethod);
 
             testGeneratorProvider.SetTestClassInitializeMethod(generationContext);
 
@@ -275,7 +275,7 @@ namespace TechTalk.SpecFlow.Generator
             testClassCleanupMethod.Attributes = MemberAttributes.Public;
             testClassCleanupMethod.Name = TESTCLASS_CLEANUP_NAME;
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(testClassCleanupMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(testClassCleanupMethod);
 
             testGeneratorProvider.SetTestClassCleanupMethod(generationContext);
 
@@ -314,7 +314,7 @@ namespace TechTalk.SpecFlow.Generator
             testCleanupMethod.Attributes = MemberAttributes.Public;
             testCleanupMethod.Name = TEST_CLEANUP_NAME;
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(testCleanupMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(testCleanupMethod);
 
             testGeneratorProvider.SetTestCleanupMethod(generationContext);
 
@@ -353,9 +353,9 @@ namespace TechTalk.SpecFlow.Generator
 
             scenarioStartMethod.ReturnType = new CodeTypeReference(typeof(Task));
             scenarioStartMethod.Attributes = MemberAttributes.Public;
-            scenarioStartMethod.Name = SCENARIO_START_NAME;           
+            scenarioStartMethod.Name = SCENARIO_START_NAME;
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(scenarioStartMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(scenarioStartMethod);
 
             //await testRunner.OnScenarioStartAsync();
             var testRunnerField = GetTestRunnerExpression();
@@ -381,7 +381,7 @@ namespace TechTalk.SpecFlow.Generator
             backgroundMethod.Attributes = MemberAttributes.Public;
             backgroundMethod.Name = BACKGROUND_NAME;
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(backgroundMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(backgroundMethod);
 
             AddLineDirective(backgroundMethod.Statements, background);
 
@@ -489,7 +489,7 @@ namespace TechTalk.SpecFlow.Generator
             testMethod.Attributes = MemberAttributes.Public;
             testMethod.Name = string.Format(TEST_NAME_FORMAT, scenarioOutline.Name.ToIdentifier());
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(testMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(testMethod);
 
             foreach (var pair in paramToIdentifier)
             {
@@ -625,7 +625,7 @@ namespace TechTalk.SpecFlow.Generator
             testMethod.Attributes = MemberAttributes.Public;
             testMethod.Name = GetTestMethodName(scenarioDefinition, variantName, exampleSetIdentifier);
 
-            CodeDomHelper.MarkCodeMemberMethodAsAsync(testMethod);
+            testGeneratorProvider.MarkCodeMemberMethodAsAsync(testMethod);
 
             var friendlyTestName = scenarioDefinition.Name;
             if (variantName != null)

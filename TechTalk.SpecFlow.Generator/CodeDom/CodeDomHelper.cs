@@ -251,7 +251,7 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
         }
 
-        public static void MarkCodeMemberMethodAsAsync(CodeMemberMethod method)
+        public void MarkCodeMemberMethodAsAsync(CodeMemberMethod method)
         {
             var returnTypeArgumentReferences = method.ReturnType.TypeArguments.OfType<CodeTypeReference>().ToArray();
 

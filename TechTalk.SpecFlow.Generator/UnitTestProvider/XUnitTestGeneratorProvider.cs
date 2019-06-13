@@ -77,6 +77,9 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
             generationContext.TestClass.BaseTypes.Add(useFixtureType);
 
             var asyncLifetimeType = new CodeTypeReference(IASYNCLIFETIME_INTERFACE);
+
+            CodeDomHelper.SetTypeReferenceAsInterface(asyncLifetimeType);
+
             _currentFixtureDataTypeDeclaration.BaseTypes.Add(asyncLifetimeType);
 
             // Task IAsyncLifetime.InitializeAsync() { <fixtureSetupMethod>(); }
@@ -108,7 +111,11 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
 
             // xUnit supports test tear down through the IAsyncLifetime interface
 
-            generationContext.TestClass.BaseTypes.Add(new CodeTypeReference(IASYNCLIFETIME_INTERFACE));
+            var asyncLifetimeType = new CodeTypeReference(IASYNCLIFETIME_INTERFACE);
+
+            CodeDomHelper.SetTypeReferenceAsInterface(asyncLifetimeType);
+
+            generationContext.TestClass.BaseTypes.Add(asyncLifetimeType);
 
             // async Task IAsyncLifetime.DisposeAsync() { <fixtureTearDownMethod>(); }
 
@@ -340,6 +347,16 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
         public void SetTestMethodAsRow(TestClassGenerationContext generationContext, CodeMemberMethod testMethod, string scenarioTitle, string exampleSetName, string variantName, IEnumerable<KeyValuePair<string, string>> arguments)
         {
             // doing nothing since we support RowTest
+        }
+
+        public void MarkCodeMemberMethodAsAsync(CodeMemberMethod testMethod)
+        {
+            CodeDomHelper.MarkCodeMemberMethodAsAsync(testMethod);
+        }
+
+        public void MarkCodeMethodInvokeExpressionAsAwait(CodeMethodInvokeExpression expression)
+        {
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(expression);
         }
     }
 }

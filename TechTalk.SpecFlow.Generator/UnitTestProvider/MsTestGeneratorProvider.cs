@@ -219,5 +219,15 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
                 SetProperty(testMethod, "Parameter:" + pair.Key, pair.Value);
             }
         }
+
+        public void MarkCodeMemberMethodAsAsync(CodeMemberMethod testMethod)
+        {
+            CodeDomHelper.MarkCodeMemberMethodAsAsync(testMethod);
+        }
+
+        public void MarkCodeMethodInvokeExpressionAsAwait(CodeMethodInvokeExpression expression)
+        {
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(expression);
+        }
     }
 }
