@@ -5,7 +5,6 @@ using Xunit;
 
 namespace TechTalk.SpecFlow.RuntimeTests
 {
-    
     public class TestRunnerManagerStaticApiTest : IAsyncLifetime
     {
         private readonly Assembly thisAssembly = Assembly.GetExecutingAssembly();
@@ -14,6 +13,10 @@ namespace TechTalk.SpecFlow.RuntimeTests
         public async Task InitializeAsync()
         {
             await TestRunnerManager.ResetAsync();
+        }
+
+        public async Task DisposeAsync()
+        {
         }
 
         [Fact]
@@ -65,6 +68,18 @@ namespace TechTalk.SpecFlow.RuntimeTests
             }
         }
 
+        [Binding]
+        public class BeforeTestRunTestBinding
+        {
+            public static int BeforeTestRunCallCount = 0;
+
+            [BeforeTestRun]
+            public static void BeforeTestRun()
+            {
+                BeforeTestRunCallCount++;
+            }
+        }
+
         [Fact]
         public async Task OnTestRunEnd_should_fire_AfterTestRun_events()
         {
@@ -103,23 +118,47 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Fact]
-        public async Task DomainUnload_event_should_not_fire_AfterTestRun_events_multiple_times_after_OnTestRunEnd()
+        public async Task OnTestRunStart_should_fire_BeforeTestRun_events()
         {
-            // make sure a test runner is initialized
-            await TestRunnerManager.GetTestRunnerAsync(thisAssembly);
+            BeforeTestRunTestBinding.BeforeTestRunCallCount = 0; //reset
+            await TestRunnerManager.OnTestRunStartAsync(thisAssembly);
 
-            AfterTestRunTestBinding.AfterTestRunCallCount = 0; //reset
-            await TestRunnerManager.OnTestRunEndAsync(thisAssembly);
-
-            // simulating DomainUnload event
-            var trm = (TestRunnerManager)await TestRunnerManager.GetTestRunnerManagerAsync(thisAssembly);
-            await trm.OnDomainUnloadAsync();
-
-            AfterTestRunTestBinding.AfterTestRunCallCount.Should().Be(1);
+            BeforeTestRunTestBinding.BeforeTestRunCallCount.Should().Be(1);
         }
 
-        public async Task DisposeAsync()
+        [Fact]
+        public async Task OnTestRunStart_without_arguments_should_fire_BeforeTestRun_events_for_calling_assembly()
         {
+            BeforeTestRunTestBinding.BeforeTestRunCallCount = 0; //reset
+            await TestRunnerManager.OnTestRunStartAsync();
+
+            BeforeTestRunTestBinding.BeforeTestRunCallCount.Should().Be(1);
         }
+
+        [Fact]
+        public async Task OnTestRunStart_should_not_fire_BeforeTestRun_events_multiple_times()
+        {
+            BeforeTestRunTestBinding.BeforeTestRunCallCount = 0; //reset
+            await TestRunnerManager.OnTestRunStartAsync(thisAssembly);
+            await TestRunnerManager.OnTestRunStartAsync(thisAssembly);
+
+            BeforeTestRunTestBinding.BeforeTestRunCallCount.Should().Be(1);
+        }
+
+        //[Fact]
+        //public void DomainUnload_event_should_not_fire_AfterTestRun_events_multiple_times_after_OnTestRunEnd()
+        //{
+        //    // make sure a test runner is initialized
+        //    TestRunnerManager.GetTestRunner(thisAssembly);
+
+        //    AfterTestRunTestBinding.AfterTestRunCallCount = 0; //reset
+        //    TestRunnerManager.OnTestRunEnd(thisAssembly);
+
+        //    // simulating DomainUnload event
+        //    var trm = (TestRunnerManager)TestRunnerManager.GetTestRunnerManager(thisAssembly);
+        //    trm.OnDomainUnload();
+
+        //    AfterTestRunTestBinding.AfterTestRunCallCount.Should().Be(1);
+        //}
     }
 }

@@ -12,5 +12,7 @@ namespace TechTalk.SpecFlow
         bool IsMultiThreaded { get; }
         Task<ITestRunner> GetTestRunnerAsync(int threadId);
         void Initialize(Assembly testAssembly);
+        Task FireTestRunEndAsync();
+        Task FireTestRunStartAsync();
     }
 }

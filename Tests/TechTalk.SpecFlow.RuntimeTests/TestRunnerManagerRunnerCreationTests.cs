@@ -58,7 +58,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
             var factory = CreateTestRunnerFactory();
             await factory.CreateTestRunnerAsync(0);
 
-            testRunnerFake.Verify(tr => tr.OnTestRunStartAsync());
+            factory.IsTestRunInitialized.Should().BeTrue();
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
 
             await factory.CreateTestRunnerAsync(0);
 
-            testRunnerFake.Verify(tr => tr.OnTestRunStartAsync());
+            factory.IsTestRunInitialized.Should().BeTrue();
         }
 
         [Fact]
@@ -80,8 +80,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
 
             await factory.CreateTestRunnerAsync(0);
 
-            testRunnerFake.Verify(tr => tr.OnTestRunStartAsync());
-
+            factory.IsTestRunInitialized.Should().BeTrue();
         }
 
 

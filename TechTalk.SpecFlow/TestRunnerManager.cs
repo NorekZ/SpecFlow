@@ -24,7 +24,7 @@ namespace TechTalk.SpecFlow
         private readonly ITestTracer testTracer;
         private readonly Dictionary<int, ITestRunner> testRunnerRegistry = new Dictionary<int, ITestRunner>();
         private readonly SemaphoreSlim syncRootSemaphore = new SemaphoreSlim(1);
-        private bool isTestRunInitialized;
+        public bool IsTestRunInitialized { get; private set; }
         private object disposeLockObj;
         private readonly SemaphoreSlim createTestRunnerSemaphore = new SemaphoreSlim(1);
 
@@ -51,10 +51,10 @@ namespace TechTalk.SpecFlow
             await createTestRunnerSemaphore.WaitAsync();
             try
             {
-                if (!isTestRunInitialized)
+                if (!IsTestRunInitialized)
                 {
                     await InitializeBindingRegistryAsync(testRunner);
-                    isTestRunInitialized = true;
+                    IsTestRunInitialized = true;
                 }
             }
             finally
@@ -69,8 +69,6 @@ namespace TechTalk.SpecFlow
         {
             BindingAssemblies = GetBindingAssemblies();
             BuildBindingRegistry(BindingAssemblies);
-
-            await testRunner.OnTestRunStartAsync();
 
             EventHandler domainUnload = delegate { OnDomainUnloadAsync().Wait(); };
             AppDomain.CurrentDomain.DomainUnload += domainUnload;
@@ -101,12 +99,24 @@ namespace TechTalk.SpecFlow
             await DisposeAsync();
         }
 
-        private async Task FireTestRunEndAsync()
+        public async Task FireTestRunEndAsync()
         {
             // this method must not be called multiple times
             var onTestRunnerEndExecutionHost = testRunnerRegistry.Values.FirstOrDefault();
             if (onTestRunnerEndExecutionHost != null)
+            {
                 await onTestRunnerEndExecutionHost.OnTestRunEndAsync();
+            }
+        }
+
+        public async Task FireTestRunStartAsync()
+        {
+            // this method must not be called multiple times
+            var onTestRunnerEndExecutionHost = testRunnerRegistry.Values.FirstOrDefault();
+            if (onTestRunnerEndExecutionHost != null)
+            {
+                await onTestRunnerEndExecutionHost.OnTestRunStartAsync();
+            }
         }
 
         protected virtual ITestRunner CreateTestRunnerInstance()
@@ -256,8 +266,18 @@ namespace TechTalk.SpecFlow
             var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: false);
             if (testRunnerManager != null)
             {
+                await testRunnerManager.FireTestRunEndAsync();
                 await testRunnerManager.DisposeAsync();
             }
+        }
+
+        public static async Task OnTestRunStartAsync(Assembly testAssembly = null)
+        {
+            testAssembly = testAssembly ?? GetCallingAssembly();
+            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: true);
+            await testRunnerManager.GetTestRunnerAsync(GetLogicalThreadId(null));
+
+            await testRunnerManager.FireTestRunStartAsync();
         }
 
         public static async Task<ITestRunner> GetTestRunnerAsync(Assembly testAssembly = null, int? managedThreadId = null)
@@ -267,6 +287,7 @@ namespace TechTalk.SpecFlow
             var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly);
             return await testRunnerManager.GetTestRunnerAsync(managedThreadId.Value);
         }
+
 
         private static int GetLogicalThreadId(int? managedThreadId)
         {
