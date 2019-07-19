@@ -97,6 +97,19 @@
     <SpecFlowGeneratorPlugins Include="$(MSBuildThisFileDirectory)..\TechTalk.SpecFlow.Specs.Generator.SpecFlowPlugin\bin\$(Configuration)\$(_SpecFlow_PluginTFM)\TechTalk.SpecFlow.Specs.Generator.SpecFlowPlugin.dll" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <SpecFlowFeatureFiles Update="Features\CucumberMessages\TestCaseFinished.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\CucumberMessages\TestCaseStarted.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\CucumberMessages\TestRunStarted.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+    </SpecFlowFeatureFiles>
+  </ItemGroup>
+
   <PropertyGroup>
     <_SpecFlow_TaskFolder Condition=" '$(MSBuildRuntimeType)' == 'Core' And '$(_SpecFlow_TaskFolder)' == ''">netcoreapp2.0</_SpecFlow_TaskFolder>
     <_SpecFlow_TaskFolder Condition=" '$(MSBuildRuntimeType)' != 'Core' And '$(_SpecFlow_TaskFolder)' == ''">net471</_SpecFlow_TaskFolder>

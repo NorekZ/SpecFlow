@@ -10,7 +10,7 @@ namespace InternalSpecFlow
         {
             var currentAssembly = typeof(XUnitAssemblyFixture).Assembly;
 
-            TestRunnerManager.OnTestRunStart(currentAssembly);
+            TestRunnerManager.OnTestRunStartAsync(currentAssembly).GetAwaiter().GetResult();
         }
     }
 }
