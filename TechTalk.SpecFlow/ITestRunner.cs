@@ -19,7 +19,7 @@ namespace TechTalk.SpecFlow
         void OnScenarioInitialize(ScenarioInfo scenarioInfo);
         Task OnScenarioStartAsync();
 
-        void CollectScenarioErrors();
+        Task CollectScenarioErrorsAsync();
         Task OnScenarioEndAsync();
 
         Task GivenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null);

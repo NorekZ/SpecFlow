@@ -55,9 +55,9 @@ namespace TechTalk.SpecFlow
             await executionEngine.OnScenarioStartAsync();
         }
 
-        public void CollectScenarioErrors()
+        public async Task CollectScenarioErrorsAsync()
         {
-            executionEngine.OnAfterLastStep();
+            await executionEngine.OnAfterLastStepAsync();
         }
 
         public async Task OnScenarioEndAsync()

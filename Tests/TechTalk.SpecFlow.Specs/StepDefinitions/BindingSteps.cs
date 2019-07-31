@@ -119,6 +119,12 @@ namespace TechTalk.SpecFlow.Specs.StepDefinitions
             _projectsDriver.AddHookBinding(eventType, methodName);
         }
 
+        [Given(@"an async hook '(.*)' for '([^']*)' including locking")]
+        public void GivenAnAsyncEventBindingIncludingLockingFor(string methodName, string eventType)
+        {
+            _projectsDriver.AddAsyncHookBindingIncludingLocking(eventType, methodName);
+        }
+
         [Given(@"a long running hook '(.*)' for '(.*)'")]
         public void GivenALongRunningHookFor(string methodName, string eventType)
         {

@@ -147,9 +147,9 @@ namespace TechTalk.SpecFlow.Infrastructure
             await FireScenarioEventsAsync(HookType.BeforeScenario);
         }
 
-        public void OnAfterLastStep()
+        public async Task OnAfterLastStepAsync()
         {
-            HandleBlockSwitch(ScenarioBlock.None);
+            await HandleBlockSwitchAsync(ScenarioBlock.None);
 
             if (_specFlowConfiguration.TraceTimings)
             {
@@ -314,7 +314,7 @@ namespace TechTalk.SpecFlow.Infrastructure
 
         private async Task ExecuteStepAsync(IContextManager contextManager, StepInstance stepInstance)
         {
-            HandleBlockSwitch(stepInstance.StepDefinitionType.ToScenarioBlock());
+            await HandleBlockSwitchAsync(stepInstance.StepDefinitionType.ToScenarioBlock());
 
             _testTracer.TraceStep(stepInstance, true);
 
@@ -388,7 +388,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             {
                 if (onStepStartExecuted)
                 {
-                    OnStepEndAsync();
+                    await OnStepEndAsync();
                 }
             }
         }
@@ -441,7 +441,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             return duration;
         }
 
-        private void HandleBlockSwitch(ScenarioBlock block)
+        private async Task HandleBlockSwitchAsync(ScenarioBlock block)
         {
             if (_contextManager == null)
             {
@@ -456,12 +456,12 @@ namespace TechTalk.SpecFlow.Infrastructure
             if (_contextManager.ScenarioContext.CurrentScenarioBlock != block)
             {
                 if (_contextManager.ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
-                    OnBlockEndAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
+                    await OnBlockEndAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
 
                 _contextManager.ScenarioContext.CurrentScenarioBlock = block;
 
                 if (_contextManager.ScenarioContext.ScenarioExecutionStatus == ScenarioExecutionStatus.OK)
-                    OnBlockStartAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
+                    await OnBlockStartAsync(_contextManager.ScenarioContext.CurrentScenarioBlock);
             }
         }
 

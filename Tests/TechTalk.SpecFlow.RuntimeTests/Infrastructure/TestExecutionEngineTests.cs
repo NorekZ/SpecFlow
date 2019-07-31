@@ -524,7 +524,7 @@ namespace TechTalk.SpecFlow.RuntimeTests.Infrastructure
             var afterHook = CreateParametrizedHookMock(afterScenarioBlockEvents, typeof(DummyClass));
 
             await testExecutionEngine.StepAsync(StepDefinitionKeyword.Given, null, "foo", null, null);
-            testExecutionEngine.OnAfterLastStep();
+            await testExecutionEngine.OnAfterLastStepAsync();
 
             AssertHooksWasCalledWithParam(beforeHook, DummyClass.LastInstance);
             AssertHooksWasCalledWithParam(afterHook, DummyClass.LastInstance);

@@ -26,7 +26,7 @@ namespace TechTalk.SpecFlow.Generator
         private const string IGNORE_TAG = "@Ignore";
         private const string SCENARIO_INITIALIZE_NAME = "ScenarioInitialize";
         private const string SCENARIO_START_NAME = "ScenarioStartAsync";
-        private const string SCENARIO_CLEANUP_NAME = "ScenarioCleanup";
+        private const string SCENARIO_CLEANUP_NAME = "ScenarioCleanupAsync";
         private const string TEST_INITIALIZE_NAME = "TestInitialize";
         private const string TEST_CLEANUP_NAME = "ScenarioTearDownAsync";
         private const string TESTCLASS_INITIALIZE_NAME = "FeatureSetupAsync";
@@ -151,14 +151,20 @@ namespace TechTalk.SpecFlow.Generator
 
             scenarioCleanupMethod.Attributes = MemberAttributes.Public;
             scenarioCleanupMethod.Name = SCENARIO_CLEANUP_NAME;
+            scenarioCleanupMethod.ReturnType = new CodeTypeReference(typeof(Task));
+
+            codeDomHelper.MarkCodeMemberMethodAsAsync(scenarioCleanupMethod);
 
             // call collect errors
             var testRunnerField = GetTestRunnerExpression();
-            //testRunner.CollectScenarioErrors();
-            scenarioCleanupMethod.Statements.Add(
-                new CodeMethodInvokeExpression(
-                    testRunnerField,
-                    "CollectScenarioErrors"));
+            //await testRunner.CollectScenarioErrorsAsync();
+            var expression = new CodeMethodInvokeExpression(
+                testRunnerField,
+                nameof(TestRunner.CollectScenarioErrorsAsync));
+
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(expression);
+
+            scenarioCleanupMethod.Statements.Add(expression);
         }
 
         private void SetupTestClass(TestClassGenerationContext generationContext)
@@ -397,7 +403,7 @@ namespace TechTalk.SpecFlow.Generator
 
             ParameterSubstitution paramToIdentifier = CreateParamToIdentifierMapping(scenarioOutline);
 
-            var scenatioOutlineTestMethod = CreateScenatioOutlineTestMethod(generationContext, scenarioOutline, paramToIdentifier);
+            var scenatioOutlineTestMethod = CreateScenarioOutlineTestMethod(generationContext, scenarioOutline, paramToIdentifier);
             var exampleTagsParam = new CodeVariableReferenceExpression(SCENARIO_OUTLINE_EXAMPLE_TAGS_PARAMETER);
             if (generationContext.GenerateRowTests)
             {
@@ -481,7 +487,7 @@ namespace TechTalk.SpecFlow.Generator
             return tableBody.Select(r => r.Cells.First().Value.ToIdentifier()).Distinct().Count() == tableBody.Count();
         }
 
-        private CodeMemberMethod CreateScenatioOutlineTestMethod(TestClassGenerationContext generationContext, ScenarioOutline scenarioOutline, ParameterSubstitution paramToIdentifier)
+        private CodeMemberMethod CreateScenarioOutlineTestMethod(TestClassGenerationContext generationContext, ScenarioOutline scenarioOutline, ParameterSubstitution paramToIdentifier)
         {
             CodeMemberMethod testMethod = CreateMethod(generationContext.TestClass);
 
@@ -512,11 +518,14 @@ namespace TechTalk.SpecFlow.Generator
 
             argumentExpressions.Add(GetStringArrayExpression(exampleSetTags));
 
-            testMethod.Statements.Add(
-                new CodeMethodInvokeExpression(
-                    new CodeThisReferenceExpression(),
-                    scenatioOutlineTestMethod.Name,
-                    argumentExpressions.ToArray()));
+            var callTestMethodExpression = new CodeMethodInvokeExpression(
+                new CodeThisReferenceExpression(),
+                scenatioOutlineTestMethod.Name,
+                argumentExpressions.ToArray());
+
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(callTestMethodExpression);
+
+            testMethod.Statements.Add(callTestMethodExpression);
 
             AddLineDirectiveHidden(testMethod.Statements);
             var arguments = paramToIdentifier.Select((p2i, paramIndex) => new KeyValuePair<string, string>(p2i.Key, row.Cells.ElementAt(paramIndex).Value)).ToList();
@@ -584,16 +593,17 @@ namespace TechTalk.SpecFlow.Generator
                         tagsExpression)));
 
             AddLineDirective(testMethod.Statements, scenario);
-            testMethod.Statements.Add(
-                new CodeMethodInvokeExpression(
-                    new CodeThisReferenceExpression(),
-                    generationContext.ScenarioInitializeMethod.Name,
-                    new CodeVariableReferenceExpression("scenarioInfo")));
 
-            testMethod.Statements.Add(
-                new CodeMethodInvokeExpression(
-                    new CodeThisReferenceExpression(),
-                    generationContext.ScenarioStartMethod.Name));
+            testMethod.Statements.Add(new CodeMethodInvokeExpression(
+                new CodeThisReferenceExpression(),
+                generationContext.ScenarioInitializeMethod.Name,
+                new CodeVariableReferenceExpression("scenarioInfo")));
+
+            var callScenarioStartMethodExpression = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), generationContext.ScenarioStartMethod.Name);
+            
+            CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(callScenarioStartMethodExpression);
+
+            testMethod.Statements.Add(callScenarioStartMethodExpression);
 
             if (HasFeatureBackground(generationContext.Feature))
             {
@@ -612,6 +622,7 @@ namespace TechTalk.SpecFlow.Generator
             AddLineDirectiveHidden(testMethod.Statements);
 
             // call scenario cleanup
+
             testMethod.Statements.Add(
                 new CodeMethodInvokeExpression(
                     new CodeThisReferenceExpression(),

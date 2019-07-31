@@ -99,8 +99,7 @@ namespace TechTalk.SpecFlow.Generator.UnitTestProvider
             CodeDomHelper.MarkCodeMethodInvokeExpressionAsAwait(expression);
 
             _currentFixtureDataTypeDeclaration.Members.Add(initializeMethod);
-            initializeMethod.Statements.Add(
-                expression);
+            initializeMethod.Statements.Add(expression);
         }
 
         public virtual bool ImplmentInterfaceExplicit => true;

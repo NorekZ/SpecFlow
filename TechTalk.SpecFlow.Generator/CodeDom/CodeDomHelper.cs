@@ -269,6 +269,10 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             {
                 expression.Method.TargetObject = new CodeTypeReferenceExpression($"await {typeExpression.Type.BaseType}");
             }
+            else if (expression.Method.TargetObject is CodeThisReferenceExpression thisExpression)
+            {
+                expression.Method.TargetObject = new CodeVariableReferenceExpression("await this");
+            }
         }
     }
 }

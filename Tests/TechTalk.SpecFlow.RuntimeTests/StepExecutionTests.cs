@@ -105,13 +105,13 @@ namespace TechTalk.SpecFlow.RuntimeTests
     public class StepExecutionTests : StepExecutionTestsBase
     {
         [Fact]
-        public void ShouldCallBindingWithoutParameter()
+        public async Task ShouldCallBindingWithoutParameter()
         {
             var (testRunner, bindingMock) = GetTestRunnerFor<StepExecutionTestsBindings>();
             
             //bindingInstance.Expect(b => b.BindingWithoutParam());
 
-            testRunner.GivenAsync("sample step without param");
+            await testRunner.GivenAsync("sample step without param");
 
             GetLastTestStatus().Should().Be(ScenarioExecutionStatus.OK);
 
@@ -119,11 +119,11 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Fact]
-        public void ShouldCallBindingSingleParameter()
+        public async Task ShouldCallBindingSingleParameter()
         {
             var (testRunner, bindingMock) = GetTestRunnerFor<StepExecutionTestsBindings>();
 
-            testRunner.GivenAsync("sample step with single param");
+            await testRunner.GivenAsync("sample step with single param");
             
             GetLastTestStatus().Should().Be(ScenarioExecutionStatus.OK);
             
@@ -132,13 +132,13 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Fact]
-        public void ShouldCallBindingMultipleParameter()
+        public async Task ShouldCallBindingMultipleParameter()
         {
             var (testRunner, bindingMock) = GetTestRunnerFor<StepExecutionTestsBindings>();
 
             //bindingInstance.Expect(b => b.BindingWithMultipleParam("multi", "ple"));
 
-            testRunner.GivenAsync("sample step with multiple param");
+            await testRunner.GivenAsync("sample step with multiple param");
 
             GetLastTestStatus().Should().Be(ScenarioExecutionStatus.OK);
             

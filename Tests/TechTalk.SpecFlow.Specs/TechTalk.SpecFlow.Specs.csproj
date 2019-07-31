@@ -99,6 +99,15 @@
 
 
   <ItemGroup>
+    <Compile Update="Features\Hooks\AsyncHookSupport.feature.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AsyncHookSupport.feature</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <SpecFlowFeatureFiles Update="Features\CucumberMessages\TestCaseFinished.feature">
       <Generator>SpecFlowSingleFileGenerator</Generator>
     </SpecFlowFeatureFiles>
@@ -107,6 +116,10 @@
     </SpecFlowFeatureFiles>
     <SpecFlowFeatureFiles Update="Features\CucumberMessages\TestRunStarted.feature">
       <Generator>SpecFlowSingleFileGenerator</Generator>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\Hooks\AsyncHookSupport.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+      <LastGenOutput>AsyncHookSupport.feature.cs</LastGenOutput>
     </SpecFlowFeatureFiles>
   </ItemGroup>
 

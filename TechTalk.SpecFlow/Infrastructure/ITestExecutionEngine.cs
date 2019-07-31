@@ -16,7 +16,7 @@ namespace TechTalk.SpecFlow.Infrastructure
 
         void OnScenarioInitialize(ScenarioInfo scenarioInfo);
         Task OnScenarioStartAsync();
-        void OnAfterLastStep();
+        Task OnAfterLastStepAsync();
         Task OnScenarioEndAsync();
 
         Task StepAsync(StepDefinitionKeyword stepDefinitionKeyword, string keyword, string text, string multilineTextArg, Table tableArg);
