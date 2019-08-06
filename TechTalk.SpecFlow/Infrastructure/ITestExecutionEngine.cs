@@ -19,6 +19,8 @@ namespace TechTalk.SpecFlow.Infrastructure
         Task OnAfterLastStepAsync();
         Task OnScenarioEndAsync();
 
+        void OnScenarioSkipped();
+
         Task StepAsync(StepDefinitionKeyword stepDefinitionKeyword, string keyword, string text, string multilineTextArg, Table tableArg);
 
         void Pending();

@@ -17,10 +17,8 @@ namespace TechTalk.SpecFlow.Infrastructure
 {
     //NOTE: Please update https://github.com/techtalk/SpecFlow/wiki/Available-Containers-&-Registrations if you change registration defaults
 
-    public partial class DefaultDependencyProvider : IDefaultDependencyProvider
+    public class DefaultDependencyProvider : IDefaultDependencyProvider
     {
-        partial void RegisterUnitTestProviders(ObjectContainer container);
-
         public virtual void RegisterGlobalContainerDefaults(ObjectContainer container)
         {
             container.RegisterTypeAs<DefaultRuntimeConfigurationProvider, IRuntimeConfigurationProvider>();
@@ -74,6 +72,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             container.RegisterTypeAs<UtcDateTimeClock, IClock>();
             container.RegisterTypeAs<CucumberMessageFactory, ICucumberMessageFactory>();
             container.RegisterTypeAs<TestResultFactory, ITestResultFactory>();
+            container.RegisterTypeAs<TestResultPartsFactory, ITestResultPartsFactory>();
             container.RegisterTypeAs<PlatformFactory, IPlatformFactory>();
             container.RegisterTypeAs<SystemInformationProvider, ISystemInformationProvider>();
             container.RegisterTypeAs<SpecFlowVersionInformationProvider, ISpecFlowVersionInformationProvider>();
@@ -83,7 +82,7 @@ namespace TechTalk.SpecFlow.Infrastructure
             container.RegisterTypeAs<PickleIdStoreDictionaryFactory, IPickleIdStoreDictionaryFactory>();
             container.RegisterTypeAs<FieldValueProvider, IFieldValueProvider>();
 
-            RegisterUnitTestProviders(container);
+            
         }
 
         public virtual void RegisterTestThreadContainerDefaults(ObjectContainer testThreadContainer)

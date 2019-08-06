@@ -4,11 +4,11 @@ namespace TechTalk.SpecFlow
 {
     public interface ITestRunner
     {
-        int ThreadId { get; }
+        string TestClassId { get; }
         FeatureContext FeatureContext { get; }
         ScenarioContext ScenarioContext { get; }
 
-        void InitializeTestRunner(int threadId);
+        void InitializeTestRunner(string testClassId);
 
         Task OnTestRunStartAsync();
         Task OnTestRunEndAsync();
@@ -21,6 +21,8 @@ namespace TechTalk.SpecFlow
 
         Task CollectScenarioErrorsAsync();
         Task OnScenarioEndAsync();
+
+        void SkipScenario();
 
         Task GivenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null);
         Task WhenAsync(string text, string multilineTextArg, Table tableArg, string keyword = null);

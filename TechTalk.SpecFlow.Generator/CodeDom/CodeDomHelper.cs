@@ -56,26 +56,27 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
         }
 
-        public void AddCommentStatement(CodeStatementCollection statements, string comment)
+        private CodeStatement CreateCommentStatement(string comment)
         {
             switch (TargetLanguage)
             {
                 case CodeDomProviderLanguage.CSharp:
-                    statements.Add(new CodeSnippetStatement("//" + comment));
-                    break;
+                    return new CodeSnippetStatement("//" + comment);
                 case CodeDomProviderLanguage.VB:
-                    statements.Add(new CodeSnippetStatement("'" + comment));
-                    break;
+                    return new CodeSnippetStatement("'" + comment);
             }
+
+            throw TargetLanguageNotSupportedException();
         }
 
-        private bool isExternalSourceBlockOpen = false;
-        private string currentBoundSourceCodeFile = null;
+        private NotImplementedException TargetLanguageNotSupportedException()
+        {
+            return new NotImplementedException($"{TargetLanguage} is not supported");
+        }
+
 
         public void BindTypeToSourceFile(CodeTypeDeclaration typeDeclaration, string fileName)
         {
-            currentBoundSourceCodeFile = fileName;
-
             switch (TargetLanguage)
             {
                 case CodeDomProviderLanguage.VB:
@@ -90,45 +91,6 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
         }
 
-        public void AddSourceLinePragmaStatement(CodeStatementCollection statements, int lineNo, int colNo)
-        {
-            if (currentBoundSourceCodeFile == null)
-                throw new InvalidOperationException("The generated code was not bound to a file!");
-
-            switch (TargetLanguage)
-            {
-                case CodeDomProviderLanguage.VB:
-                    if (isExternalSourceBlockOpen)
-                    {
-                        AddDisableSourceLinePragmaStatement(statements);
-                    }
-                    statements.Add(new CodeSnippetStatement(string.Format("#ExternalSource(\"{0}\",{1})", currentBoundSourceCodeFile, lineNo)));
-                    isExternalSourceBlockOpen = true;
-                    AddCommentStatement(statements, string.Format("#indentnext {0}", colNo - 1));
-                    break;
-                case CodeDomProviderLanguage.CSharp:
-                    statements.Add(new CodeSnippetStatement(string.Format("#line {0}", lineNo)));
-                    AddCommentStatement(statements, string.Format("#indentnext {0}", colNo - 1));
-                    break;
-            }
-        }
-
-        public void AddDisableSourceLinePragmaStatement(CodeStatementCollection statements)
-        {
-            switch (TargetLanguage)
-            {
-                case CodeDomProviderLanguage.VB:
-                    if (isExternalSourceBlockOpen)
-                    {
-                        statements.Add(new CodeSnippetStatement("#End ExternalSource"));
-                    }
-                    isExternalSourceBlockOpen = false;
-                    break;
-                case CodeDomProviderLanguage.CSharp:
-                    statements.Add(new CodeSnippetStatement("#line hidden"));
-                    break;
-            }
-        }
 
         public CodeStatement GetStartRegionStatement(string regionText)
         {
@@ -251,6 +213,41 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
         }
 
+        public CodeMemberMethod CreateMethod(CodeTypeDeclaration type)
+        {
+            var method = new CodeMemberMethod();
+            type.Members.Add(method);
+            return method;
+        }
+
+        public CodeStatement CreateDisableSourceLinePragmaStatement()
+        {
+            switch (TargetLanguage)
+            {
+                case CodeDomProviderLanguage.VB:
+                    return new CodeSnippetStatement("#End ExternalSource");
+                case CodeDomProviderLanguage.CSharp:
+                    return new CodeSnippetStatement("#line hidden");
+            }
+
+            throw TargetLanguageNotSupportedException();
+        }
+
+        public IEnumerable<CodeStatement> CreateSourceLinePragmaStatement(string filename, int lineNo, int colNo)
+        {
+            switch (TargetLanguage)
+            {
+                case CodeDomProviderLanguage.VB:
+                    yield return new CodeSnippetStatement($"#ExternalSource(\"{filename}\",{lineNo})");
+                    yield return CreateCommentStatement($"#indentnext {colNo - 1}");
+                    break;
+                case CodeDomProviderLanguage.CSharp:
+                    yield return new CodeSnippetStatement($"#line {lineNo}");
+                    yield return CreateCommentStatement($"#indentnext {colNo - 1}");
+                    break;
+            }
+        }
+
         public void MarkCodeMemberMethodAsAsync(CodeMemberMethod method)
         {
             var returnTypeArgumentReferences = method.ReturnType.TypeArguments.OfType<CodeTypeReference>().ToArray();
@@ -259,7 +256,7 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             method.ReturnType = asyncReturnType;
         }
 
-        public static void MarkCodeMethodInvokeExpressionAsAwait(CodeMethodInvokeExpression expression)
+        public void MarkCodeMethodInvokeExpressionAsAwait(CodeMethodInvokeExpression expression)
         {
             if (expression.Method.TargetObject is CodeVariableReferenceExpression variableExpression)
             {
@@ -271,7 +268,15 @@ namespace TechTalk.SpecFlow.Generator.CodeDom
             }
             else if (expression.Method.TargetObject is CodeThisReferenceExpression thisExpression)
             {
-                expression.Method.TargetObject = new CodeVariableReferenceExpression("await this");
+                switch (TargetLanguage)
+                {
+                    case CodeDomProviderLanguage.VB:
+                        expression.Method.TargetObject = new CodeVariableReferenceExpression("await Me");
+                        break;
+                    case CodeDomProviderLanguage.CSharp:
+                        expression.Method.TargetObject = new CodeVariableReferenceExpression("await this");
+                        break;
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ namespace TechTalk.SpecFlow
         protected readonly IRuntimeBindingRegistryBuilder bindingRegistryBuilder;
 
         private readonly ITestTracer testTracer;
-        private readonly Dictionary<int, ITestRunner> testRunnerRegistry = new Dictionary<int, ITestRunner>();
+        private readonly Dictionary<string, ITestRunner> testRunnerRegistry = new Dictionary<string, ITestRunner>();
         private readonly SemaphoreSlim syncRootSemaphore = new SemaphoreSlim(1);
         public bool IsTestRunInitialized { get; private set; }
         private object disposeLockObj;
@@ -43,10 +43,10 @@ namespace TechTalk.SpecFlow
             this.testTracer = testTracer;
         }
 
-        public virtual async Task<ITestRunner> CreateTestRunnerAsync(int threadId)
+        public virtual async Task<ITestRunner> CreateTestRunnerAsync(string testClassId)
         {
             var testRunner = CreateTestRunnerInstance();
-            testRunner.InitializeTestRunner(threadId);
+            testRunner.InitializeTestRunner(testClassId);
 
             await createTestRunnerSemaphore.WaitAsync();
             try
@@ -131,11 +131,11 @@ namespace TechTalk.SpecFlow
             TestAssembly = assignedTestAssembly;
         }
 
-        public virtual async Task<ITestRunner> GetTestRunnerAsync(int threadId)
+        public virtual async Task<ITestRunner> GetTestRunnerAsync(string testClassId)
         {
             try
             {
-                return await GetTestRunnerWithoutExceptionHandlingAsync(threadId);
+                return await GetTestRunnerWithoutExceptionHandlingAsync(testClassId);
 
             }
             catch (Exception ex)
@@ -145,18 +145,17 @@ namespace TechTalk.SpecFlow
             }
         }
 
-        private async Task<ITestRunner> GetTestRunnerWithoutExceptionHandlingAsync(int threadId)
+        private async Task<ITestRunner> GetTestRunnerWithoutExceptionHandlingAsync(string testClassId)
         {
-            ITestRunner testRunner;
-            if (!testRunnerRegistry.TryGetValue(threadId, out testRunner))
+            if (!testRunnerRegistry.TryGetValue(testClassId, out var testRunner))
             {
                 await syncRootSemaphore.WaitAsync();
                 try
                 {
-                    if (!testRunnerRegistry.TryGetValue(threadId, out testRunner))
+                    if (!testRunnerRegistry.TryGetValue(testClassId, out testRunner))
                     {
-                        testRunner = await CreateTestRunnerAsync(threadId);
-                        testRunnerRegistry.Add(threadId, testRunner);
+                        testRunner = await CreateTestRunnerAsync(testClassId);
+                        testRunnerRegistry.Add(testClassId, testRunner);
 
                         if (IsMultiThreaded)
                         {
@@ -260,10 +259,10 @@ namespace TechTalk.SpecFlow
             return testRunnerManager;
         }
 
-        public static async Task OnTestRunEndAsync(Assembly testAssembly = null)
+        public static async Task OnTestRunEndAsync(Assembly testAssembly = null, IContainerBuilder containerBuilder = null)
         {
             testAssembly = testAssembly ?? GetCallingAssembly();
-            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: false);
+            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: false, containerBuilder: containerBuilder);
             if (testRunnerManager != null)
             {
                 await testRunnerManager.FireTestRunEndAsync();
@@ -271,43 +270,20 @@ namespace TechTalk.SpecFlow
             }
         }
 
-        public static async Task OnTestRunStartAsync(Assembly testAssembly = null)
+        public static async Task OnTestRunStartAsync(string testClassId, Assembly testAssembly = null, IContainerBuilder containerBuilder = null)
         {
             testAssembly = testAssembly ?? GetCallingAssembly();
-            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: true);
-            await testRunnerManager.GetTestRunnerAsync(GetLogicalThreadId(null));
+            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, createIfMissing: true, containerBuilder: containerBuilder);
+            await testRunnerManager.GetTestRunnerAsync(testClassId);
 
             await testRunnerManager.FireTestRunStartAsync();
         }
 
-        public static async Task<ITestRunner> GetTestRunnerAsync(Assembly testAssembly = null, int? managedThreadId = null)
+        public static async Task<ITestRunner> GetTestRunnerAsync(string testClassId, Assembly testAssembly = null, IContainerBuilder containerBuilder = null)
         {
             testAssembly = testAssembly ?? GetCallingAssembly();
-            managedThreadId = GetLogicalThreadId(managedThreadId);
-            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly);
-            return await testRunnerManager.GetTestRunnerAsync(managedThreadId.Value);
-        }
-
-
-        private static int GetLogicalThreadId(int? managedThreadId)
-        {
-            if (ParallelExecutionIsDisabled())
-            {
-                return FixedLogicalThreadId;
-            }
-
-            return managedThreadId ?? Thread.CurrentThread.ManagedThreadId;
-        }
-
-        private static bool ParallelExecutionIsDisabled()
-        {
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariableNames.NCrunch)) ||
-                !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariableNames.SpecflowDisableParallelExecution)))
-            {
-                return true;
-            }
-
-            return false;
+            var testRunnerManager = await GetTestRunnerManagerAsync(testAssembly, containerBuilder);
+            return await testRunnerManager.GetTestRunnerAsync(testClassId);
         }
 
         internal static async Task ResetAsync()

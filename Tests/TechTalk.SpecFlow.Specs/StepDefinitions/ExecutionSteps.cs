@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TechTalk.SpecFlow.Specs.Drivers;
 using TechTalk.SpecFlow.TestProjectGenerator.Driver;
 
 namespace TechTalk.SpecFlow.Specs.StepDefinitions
 {
+
     [Binding]
     public class ExecutionSteps
     {
@@ -28,6 +32,13 @@ namespace TechTalk.SpecFlow.Specs.StepDefinitions
             _executionDriver.ExecuteTests();
         }
 
+        [When(@"I execute the tests twice")]
+        public void WhenIExecuteTheTestsTwice()
+        {
+            _executionDriver.ExecuteTests();
+            _executionDriver.ExecuteTests();
+        }
+        
         [Given(@"I start executing the tests asynchronously")]
         public void GivenIStartExecutingTheTestsAsynchronously()
         {
